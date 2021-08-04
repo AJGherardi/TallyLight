@@ -16,6 +16,7 @@ arduino_nano33iot = { git = "https://github.com/atsamd-rs/atsamd", features = ["
 usb-device = "0.2"
 usbd-serial = "0.1"
 alloc-cortex-m = "0.4.1"
+hex = { version = "0.4", default-features = false }
 
 [[bin]]
 name = "tally"

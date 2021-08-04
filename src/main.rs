@@ -3,6 +3,7 @@
 
 extern crate arduino_nano33iot as hal;
 extern crate cortex_m;
+extern crate hex;
 extern crate panic_halt;
 extern crate usb_device;
 extern crate usbd_serial;
@@ -12,6 +13,7 @@ use hal::clock::GenericClockController;
 use hal::entry;
 use hal::pac::Peripherals;
 use hal::prelude::*;
+use hex::ToHex;
 use usb_device::prelude::*;
 use usbd_serial::{SerialPort, USB_CLASS_CDC};
 
@@ -25,12 +27,12 @@ fn main() -> ! {
         &mut peripherals.SYSCTRL,
         &mut peripherals.NVMCTRL,
     );
-    // Get pins from peripherals 
+    // Get pins from peripherals
     let mut pins = hal::Pins::new(peripherals.PORT);
-    
+
     // Get led from pins
     let mut led = pins.led_sck.into_open_drain_output(&mut pins.port);
-    
+
     // Get bus allocator
     let bus_allocator = hal::usb_allocator(
         peripherals.USB,
@@ -40,12 +42,21 @@ fn main() -> ! {
         pins.usb_dp,
     );
 
-    // Create serial and bus using allocator 
+    // Get serial number from hal and encode it into a hex string
+    let serial_number = hal::serial_number();
+    let mut serial_hex: [u8; 32] = [0u8; 32];
+    hex::encode_to_slice(serial_number, &mut serial_hex);
+    let serial_str = match str::from_utf8(&serial_hex) {
+        Ok(v) => v,
+        Err(_) => "NA",
+    };
+
+    // Create serial and bus using allocator
     let mut serial = SerialPort::new(&bus_allocator);
     let mut bus = UsbDeviceBuilder::new(&bus_allocator, UsbVidPid(0x0000, 0x0000))
         .manufacturer("Alexander Gherardi")
         .product("ATEM Compatible Tally Light")
-        .serial_number("TODO")
+        .serial_number(serial_str)
         .device_class(USB_CLASS_CDC)
         .build();
 
