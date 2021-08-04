@@ -44,7 +44,7 @@ fn main() -> ! {
 
     // Get serial number from hal and encode it into a hex string
     let serial_number = hal::serial_number();
-    let mut serial_hex: [u8; 32] = [0u8; 32];
+    let mut serial_hex = [0u8; 32];
     hex::encode_to_slice(serial_number, &mut serial_hex);
     let serial_str = match str::from_utf8(&serial_hex) {
         Ok(v) => v,
