@@ -34,9 +34,9 @@ fn main() -> ! {
     let mut pins = hal::Pins::new(peripherals.PORT);
 
     // Get led from pins
-    let mut _led_prev = pins.a3.into_function_f(&mut pins.port);
-    let mut _led_prog = pins.a2.into_function_f(&mut pins.port);
-    let mut _led_prog_fr = pins.d9.into_function_f(&mut pins.port);
+    let mut _led_prev = pins.a2.into_function_f(&mut pins.port);
+    let mut _led_prog = pins.a3.into_function_f(&mut pins.port);
+    let mut _led_prog_fr = pins.d5.into_function_e(&mut pins.port);
 
     // Get PWM
     let gclk0 = clocks.gclk0();
