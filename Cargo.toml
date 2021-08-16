@@ -10,9 +10,9 @@ cortex-m = "0.6.0"
 cortex-m-rt = "0.6.10"
 cortex-m-semihosting = "0.3.3"
 panic-halt = "0.2.0"
-embedded-hal = "0.2.3"
+embedded-hal = "0.2.6"
 nb = "1.0"
-arduino_nano33iot = { git = "https://github.com/atsamd-rs/atsamd", features = ["usb"]}
+arduino_nano33iot = { git = "https://github.com/atsamd-rs/atsamd", features = ["usb", "unproven"]}
 usb-device = "0.2"
 usbd-serial = "0.1"
 alloc-cortex-m = "0.4.1"

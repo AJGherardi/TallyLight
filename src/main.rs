@@ -9,10 +9,12 @@ extern crate usb_device;
 extern crate usbd_serial;
 
 use core::str;
+use embedded_hal::PwmPin;
 use hal::clock::GenericClockController;
 use hal::entry;
-use hal::pac::Peripherals;
+use hal::pac::{CorePeripherals, Peripherals};
 use hal::prelude::*;
+use hal::pwm::{Channel, Pwm0, Pwm5};
 use hex::ToHex;
 use usb_device::prelude::*;
 use usbd_serial::{SerialPort, USB_CLASS_CDC};
@@ -27,11 +29,32 @@ fn main() -> ! {
         &mut peripherals.SYSCTRL,
         &mut peripherals.NVMCTRL,
     );
+
     // Get pins from peripherals
     let mut pins = hal::Pins::new(peripherals.PORT);
 
     // Get led from pins
-    let mut led = pins.led_sck.into_open_drain_output(&mut pins.port);
+    let mut _led_prev = pins.a3.into_function_f(&mut pins.port);
+    let mut _led_prog = pins.a2.into_function_f(&mut pins.port);
+    let mut _led_prog_fr = pins.d9.into_function_f(&mut pins.port);
+
+    // Get PWM
+    let gclk0 = clocks.gclk0();
+    let mut pwm = Pwm0::new(
+        &clocks.tcc0_tcc1(&gclk0).unwrap(),
+        1.khz(),
+        peripherals.TCC0,
+        &mut peripherals.PM,
+    );
+
+    // Enable PWM a2: _3; a3: _2
+    let max_duty = pwm.get_max_duty();
+    pwm.enable(Channel::_3);
+    pwm.enable(Channel::_2);
+    pwm.enable(Channel::_1);
+    let led_prev = Channel::_2;
+    let led_prog = Channel::_3;
+    let led_prog_fr = Channel::_1;
 
     // Get bus allocator
     let bus_allocator = hal::usb_allocator(
@@ -80,8 +103,16 @@ fn main() -> ! {
 
                 // Match string to desired state
                 match s {
-                    "on\n" => led.set_high().unwrap(),
-                    "off\n" => led.set_low().unwrap(),
+                    "prev_on\n" => pwm.set_duty(led_prev, max_duty / 4),
+                    "prev_off\n" => pwm.set_duty(led_prev, 0),
+                    "prog_on\n" => {
+                        pwm.set_duty(led_prog, max_duty);
+                        pwm.set_duty(led_prog_fr, max_duty);
+                    }
+                    "prog_off\n" => {
+                        pwm.set_duty(led_prog, 0);
+                        pwm.set_duty(led_prog_fr, 0);
+                    }
                     _ => {}
                 }
             }
