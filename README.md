@@ -1,0 +1,2 @@
+# TallyLight
+[![Codacy Badge](https://api.codacy.com/project/badge/Grade/22d9f0fa94d041a9b2f10622d475321d)](https://app.codacy.com/gh/AJGherardi/TallyLight?utm_source=github.com&utm_medium=referral&utm_content=AJGherardi/TallyLight&utm_campaign=Badge_Grade_Settings)
