@@ -47,13 +47,13 @@ fn main() -> ! {
         &mut peripherals.PM,
     );
 
-    // Enable PWM a2: _3; a3: _2
+    // Enable PWM a2: _3; a3: _2; d5: _1
     let max_duty = pwm.get_max_duty();
-    pwm.enable(Channel::_3);
     pwm.enable(Channel::_2);
+    pwm.enable(Channel::_3);
     pwm.enable(Channel::_1);
-    let led_prev = Channel::_2;
-    let led_prog = Channel::_3;
+    let led_prev = Channel::_3;
+    let led_prog = Channel::_2;
     let led_prog_fr = Channel::_1;
 
     // Get bus allocator
