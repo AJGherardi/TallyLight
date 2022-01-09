@@ -1,21 +1,23 @@
 #![no_std]
 #![no_main]
 
-extern crate arduino_nano33iot as hal;
 extern crate cortex_m;
 extern crate hex;
 extern crate panic_halt;
 extern crate usb_device;
 extern crate usbd_serial;
 
+use arduino_nano33iot as bsp;
+use bsp::entry;
+use bsp::hal;
+
+use bsp::hal::gpio::v2::*;
+
 use core::str;
-use embedded_hal::PwmPin;
 use hal::clock::GenericClockController;
-use hal::entry;
-use hal::pac::{CorePeripherals, Peripherals};
+use hal::pac::Peripherals;
 use hal::prelude::*;
-use hal::pwm::{Channel, Pwm0, Pwm5};
-use hex::ToHex;
+use hal::pwm::{Channel, Pwm0};
 use usb_device::prelude::*;
 use usbd_serial::{SerialPort, USB_CLASS_CDC};
 
@@ -31,12 +33,12 @@ fn main() -> ! {
     );
 
     // Get pins from peripherals
-    let mut pins = hal::Pins::new(peripherals.PORT);
+    let pins = bsp::Pins::new(peripherals.PORT);
 
     // Get led from pins
-    let mut _led_prev = pins.a2.into_function_f(&mut pins.port);
-    let mut _led_prog = pins.a3.into_function_f(&mut pins.port);
-    let mut _led_prog_fr = pins.d5.into_function_e(&mut pins.port);
+    let _led_prev: Pin<_, AlternateF> = pins.a2.into_mode();
+    let _led_prog: Pin<_, AlternateF> = pins.a3.into_mode();
+    let _led_prog_fr: Pin<_, AlternateE> = pins.d5.into_mode();
 
     // Get PWM
     let gclk0 = clocks.gclk0();
@@ -57,7 +59,7 @@ fn main() -> ! {
     let led_prog_fr = Channel::_1;
 
     // Get bus allocator
-    let bus_allocator = hal::usb_allocator(
+    let bus_allocator = bsp::usb_allocator(
         peripherals.USB,
         &mut clocks,
         &mut peripherals.PM,
@@ -101,20 +103,24 @@ fn main() -> ! {
                     Err(_) => "",
                 };
 
-                // Match string to desired state
-                match s {
-                    "prev_on\n" => pwm.set_duty(led_prev, max_duty / 4),
-                    "prev_off\n" => pwm.set_duty(led_prev, 0),
-                    "prog_on\n" => {
-                        pwm.set_duty(led_prog, max_duty);
-                        pwm.set_duty(led_prog_fr, max_duty);
-                    }
-                    "prog_off\n" => {
-                        pwm.set_duty(led_prog, 0);
-                        pwm.set_duty(led_prog_fr, 0);
-                    }
+                // Split string 
+                let mut split = s.split("|");
+
+                // Get desired light choice and lightness
+                let light = split.nth(0).unwrap_or("");
+                let lightness_str = split.nth(0).unwrap_or("0");
+                let lightness: u32 = lightness_str.parse().unwrap_or(0);                    
+
+                // Select light and set lightness
+                match light {
+                    "p" => pwm.set_duty(led_prev, max_duty / 100 * lightness),
+                    "P" => {
+                        pwm.set_duty(led_prog, max_duty / 100 * lightness);
+                        pwm.set_duty(led_prog_fr, max_duty / 100 * lightness);
+                    },
                     _ => {}
                 }
+
             }
             Err(UsbError::WouldBlock) => {}
             Err(_) => {}
