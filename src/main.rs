@@ -103,13 +103,13 @@ fn main() -> ! {
                     Err(_) => "",
                 };
 
-                // Split string 
+                // Split string
                 let mut split = s.split("|");
 
                 // Get desired light choice and lightness
                 let light = split.nth(0).unwrap_or("");
                 let lightness_str = split.nth(0).unwrap_or("0");
-                let lightness: u32 = lightness_str.parse().unwrap_or(0);                    
+                let lightness: u32 = lightness_str.parse().unwrap_or(0);
 
                 // Select light and set lightness
                 match light {
@@ -117,10 +117,9 @@ fn main() -> ! {
                     "P" => {
                         pwm.set_duty(led_prog, max_duty / 100 * lightness);
                         pwm.set_duty(led_prog_fr, max_duty / 100 * lightness);
-                    },
+                    }
                     _ => {}
                 }
-
             }
             Err(UsbError::WouldBlock) => {}
             Err(_) => {}
