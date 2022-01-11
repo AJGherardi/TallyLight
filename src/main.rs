@@ -70,18 +70,13 @@ fn main() -> ! {
     // Get serial number from hal and encode it into a hex string
     let serial_number = hal::serial_number();
     let mut serial_hex = [0u8; 32];
-    hex::encode_to_slice(serial_number, &mut serial_hex);
-    let serial_str = match str::from_utf8(&serial_hex) {
-        Ok(v) => v,
-        Err(_) => "NA",
-    };
+    drop(hex::encode_to_slice(serial_number, &mut serial_hex));
 
     // Create serial and bus using allocator
     let mut serial = SerialPort::new(&bus_allocator);
     let mut bus = UsbDeviceBuilder::new(&bus_allocator, UsbVidPid(0x0000, 0x0000))
         .manufacturer("Alexander Gherardi")
         .product("ATEM Compatible Tally Light")
-        .serial_number(serial_str)
         .device_class(USB_CLASS_CDC)
         .build();
 
@@ -118,6 +113,7 @@ fn main() -> ! {
                         pwm.set_duty(led_prog, max_duty / 100 * lightness);
                         pwm.set_duty(led_prog_fr, max_duty / 100 * lightness);
                     }
+                    "S" => drop(serial.write(&serial_hex)),
                     _ => {}
                 }
             }
